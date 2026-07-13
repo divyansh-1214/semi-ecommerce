@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+}
+
+model Part {
+  id            Int         @id @default(autoincrement())
+  partNo        String      @unique
+  datasheetUrl  String
+  subCategoryId Int
+  SubCategory   SubCategory @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+  PartSpec      PartSpec[]
+
+  @@index([subCategoryId])
+}
+
+model PartSpec {
+  id           Int        @id @default(autoincrement())
+  partId       Int
+  specColumnId Int
+  associated   Boolean    @default(true)
+  value        String?
+  Part         Part       @relation(fields: [partId], references: [id], onDelete: Cascade)
+  SpecColumn   SpecColumn @relation(fields: [specColumnId], references: [id], onDelete: Cascade)
+
+  @@unique([partId, specColumnId])
+  @@index([partId])
+  @@index([specColumnId])
+}
+
+model SpecColumn {
+  id       Int        @id @default(autoincrement())
+  name     String     @unique
+  PartSpec PartSpec[]
+}
+
+model SubCategory {
+  id         Int    @id @default(autoincrement())
+  name       String
+  categoryId Int
+  Part       Part[]
+
+  @@unique([categoryId, name])
+  @@index([categoryId])
+}
