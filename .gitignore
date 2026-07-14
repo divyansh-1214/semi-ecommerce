@@ -12,7 +12,6 @@ out/
 
 # Env files (both projects)
 .env
-.env.*
 
 # Logs
 logs/

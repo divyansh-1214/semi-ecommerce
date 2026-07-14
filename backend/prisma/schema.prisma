@@ -8,8 +8,9 @@ datasource db {
 }
 
 model Category {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  SubCategory SubCategory[]
 }
 
 model Part {
@@ -44,9 +45,10 @@ model SpecColumn {
 }
 
 model SubCategory {
-  id         Int    @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   name       String
   categoryId Int
+  Category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   Part       Part[]
 
   @@unique([categoryId, name])
