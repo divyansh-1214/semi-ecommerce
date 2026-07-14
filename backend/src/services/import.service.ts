@@ -1,7 +1,7 @@
 import fs from 'fs';
 import csvParser from 'csv-parser';
 import prisma from '../config/database.js';
-
+import { Prisma } from '../config/database.js';
 export const processCSV = async (filePath: string) => {
   const results: any[] = [];
   let headers: string[] = [];
@@ -154,38 +154,29 @@ const importDataToDb = async (headers: string[], rows: any[]) => {
       });
 
       // Prepare and Upsert PartSpecs
+      const specRows: { partId: number; specColumnId: number; associated: boolean; value: string | null }[] = [];
       for (const colName of specColumnsStr) {
         const rawValue = row[colName];
-        if (rawValue === undefined || rawValue.trim() === '') {
-          continue;
-        }
-
-        const associated = true;
-        const value = rawValue.trim() === '-' ? null : rawValue.trim();
+        if (!rawValue || rawValue.trim() === '') continue;
         const specColumnId = specColumnMap.get(colName);
-
-        if (specColumnId === undefined) {
-          continue;
-        }
-
-        await prisma.partSpec.upsert({
-          where: {
-            partId_specColumnId: {
-              partId: part.id,
-              specColumnId,
-            },
-          },
-          update: {
-            associated,
-            value,
-          },
-          create: {
-            partId: part.id,
-            specColumnId,
-            associated,
-            value,
-          },
+        if (specColumnId === undefined) continue;
+        specRows.push({
+          partId: part.id,
+          specColumnId,
+          associated: true,
+          value: rawValue.trim() === '-' ? null : rawValue.trim(),
         });
+      }
+      const CHUNK = 500;
+      for (let i = 0; i < specRows.length; i += CHUNK) {
+        const chunk = specRows.slice(i, i + CHUNK);
+        const values = chunk.map(s => Prisma.sql`(${s.partId}, ${s.specColumnId}, ${s.associated}, ${s.value})`);
+        await prisma.$executeRaw`
+          INSERT INTO "PartSpec" ("partId", "specColumnId", "associated", "value")
+          VALUES ${Prisma.join(values)}
+          ON CONFLICT ("partId", "specColumnId")
+          DO UPDATE SET "associated" = EXCLUDED."associated", "value" = EXCLUDED."value"
+        `;
       }
       rowsProcessed++;
     } catch (err: any) {
