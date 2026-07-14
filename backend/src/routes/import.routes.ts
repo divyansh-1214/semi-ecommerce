@@ -10,10 +10,11 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024,
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'text/csv' || file.mimetype === 'application/vnd.ms-excel') {
+    const ext = file.originalname.split('.').pop()?.toLowerCase();
+    if (ext === 'csv') {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type, only CSV is allowed!'));
+      cb(new Error('Invalid file type, only CSV (.csv) is allowed!'));
     }
   }
 });
