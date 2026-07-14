@@ -37,7 +37,7 @@ The core logic of the CSV import revolves around the `PartSpec` states:
 All endpoints are prefixed with `/api`.
 
 ### Import
-- `POST /api/import`: Accepts a `multipart/form-data` CSV file upload. Parses the file, extracts dynamic `SpecColumn` headers, and upserts data. It processes rows sequentially without wrapping in a massive transaction, utilizing in-memory caches and chunked raw SQL bulk upserts for `PartSpec` to optimize database performance. It also handles empty row indicators and breaks on continuous blank rows.
+- `POST /api/import`: Accepts a `multipart/form-data` CSV file upload. Parses the file **directly from memory** (using `multer.memoryStorage()` and a readable stream), extracting dynamic `SpecColumn` headers, and upserts data. It processes rows sequentially utilizing in-memory caches and chunked raw SQL bulk upserts for `PartSpec` to optimize database performance without locking or writing temporary files to disk. It handles empty row indicators and returns a detailed `ImportReport` JSON object (including counts of rows processed, rows failed, and an array of specific row-level error messages).
 
 ### Categories
 - `GET /api/categories`: Lists all categories alongside their subcategory counts.
