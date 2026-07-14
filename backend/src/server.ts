@@ -1,6 +1,5 @@
 import Express from "express";
 import prisma from "./config/database.js";
-import multer from "multer";
 import { configDotenv } from "dotenv";
 import cors from "cors";
 import routes from "./routes/index.js";
@@ -18,7 +17,7 @@ app.use((req, res, next) => {
 });
 
 // for allowing the cors
-const f_url = process.env.FRONTEND_URL || "http://localhost:3000"; ;
+const f_url = process.env.FRONTEND_URL || "http://localhost:3000";;
 app.use(cors({ origin: [f_url] }));
 
 app.get("/", (req, res) => {
@@ -30,7 +29,7 @@ app.use("/api", routes);
 app.use(errorHandler);
 
 
-async function  startServer() {
+async function startServer() {
   try {
     await prisma.$connect();
     console.log("Connected to the database successfully");
