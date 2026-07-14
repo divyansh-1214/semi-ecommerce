@@ -1,15 +1,11 @@
-import fs from 'fs';
 import csvParser from 'csv-parser';
+import { Readable } from 'stream';
 import prisma from '../config/database.js';
 import { Prisma } from '../config/database.js';
-export const processCSV = async (filePath: string) => {
-  // Check magic bytes to detect Excel files (binary zip/ole format)
-  const buffer = Buffer.alloc(8);
-  const fd = fs.openSync(filePath, 'r');
-  fs.readSync(fd, buffer, 0, 8, 0);
-  fs.closeSync(fd);
 
-  const hex = buffer.toString('hex');
+export const processCSV = async (fileBuffer: Buffer) => {
+  // Check magic bytes to detect Excel files (binary zip/ole format)
+  const hex = fileBuffer.subarray(0, 8).toString('hex');
   if (hex.startsWith('504b0304')) {
     throw new Error('Invalid file format. The file appears to be an Excel (.xlsx) file. Please export it to a tab-separated CSV (.csv) first.');
   }
@@ -20,12 +16,12 @@ export const processCSV = async (filePath: string) => {
   const results: any[] = [];
   let headers: string[] = [];
   return new Promise((resolve, reject) => {
-    fs.createReadStream(filePath)
+    Readable.from(fileBuffer)
       .pipe(csvParser({ separator: "\t", }))
       .on('headers', (headerList: string[]) => {
         headers = headerList;
       })
-      .on('data', (data: any) => { results.push(data); console.log(data) })
+      .on('data', (data: any) => { results.push(data); })
       .on('end', async () => {
         try {
           const importResult = await importDataToDb(headers, results);

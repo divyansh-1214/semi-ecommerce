@@ -5,7 +5,7 @@ import { importCsv } from '../controllers/import.controller.js';
 const router = Router();
 
 const upload = multer({
-  dest: 'uploads/',
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 10 * 1024 * 1024,
   },
