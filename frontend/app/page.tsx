@@ -29,11 +29,11 @@ export default function Home() {
 
     const formData = new FormData();
 
-    // Must match upload.single("doc") in Express
-    formData.append("doc", file);
+    // Must match upload.single("file") in Express
+    formData.append("file", file);
 
     try {
-      const response = await api.post("/upload", formData);
+      const response = await api.post("/api/import", formData);
 
       console.log(response.data);
 

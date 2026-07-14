@@ -3,9 +3,19 @@ import prisma from "./config/database.js";
 import multer from "multer";
 import { configDotenv } from "dotenv";
 import cors from "cors";
+import routes from "./routes/index.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+
 const app = Express();
-const upload = multer({ dest: 'uploads/' })
+app.use(Express.json());
+app.use(Express.urlencoded({ extended: true }));
 configDotenv();
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
 
 // for allowing the cors
 const f_url = process.env.FRONTEND_URL || "http://localhost:3000"; ;
@@ -15,28 +25,9 @@ app.get("/", (req, res) => {
   res.json({ "message": "heyy" });
 })
 
-app.post(
-  "/upload",
-  upload.single("doc"),
-  (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({
-        message: "No file was uploaded",
-      });
-    }
+app.use("/api", routes);
 
-    console.log(req.file);
-
-    return res.status(200).json({
-      message: "File uploaded successfully",
-      file: {
-        originalName: req.file.originalname,
-        filename: req.file.filename,
-        size: req.file.size,
-      },
-    });
-  }
-);
+app.use(errorHandler);
 
 
 async function  startServer() {
