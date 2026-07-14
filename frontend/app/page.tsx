@@ -1,69 +1,23 @@
-"use client";
+import { redirect } from "next/navigation";
+import { fetchCategories, fetchCategoryDetails } from "@/services/serverApi";
 
-import { useEffect, useState } from "react";
-import {api} from "@/services/api"; // Change this path if needed
+export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const [file, setFile] = useState<File | null>(null);
-
-  useEffect(() => {
-    api
-      .get("/")
-      .then((response) => {
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }, []);
-
-  const handleUpload = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
-    event.preventDefault();
-
-    if (!file) {
-      alert("Please select a file");
-      return;
+export default async function Home() {
+  const categories = await fetchCategories();
+  
+  if (categories && categories.length > 0) {
+    const firstCat = categories[0];
+    const catDetails = await fetchCategoryDetails(firstCat.id);
+    if (catDetails.subCategories && catDetails.subCategories.length > 0) {
+      redirect(`/category/${firstCat.id}/${catDetails.subCategories[0].id}`);
     }
-
-    const formData = new FormData();
-
-    // Must match upload.single("file") in Express
-    formData.append("file", file);
-
-    try {
-      const response = await api.post("/api/import", formData);
-
-      console.log(response.data);
-
-      alert("File uploaded successfully");
-    } catch (error) {
-      console.error(error);
-
-      alert("File upload failed");
-    }
-  };
+  }
 
   return (
-    <>
-      <form onSubmit={handleUpload}>
-        <input
-          type="file"
-          name="doc"
-          onChange={(event) => {
-            const selectedFile = event.target.files?.[0];
-
-            if (selectedFile) {
-              setFile(selectedFile);
-            }
-          }}
-        />
-
-        <button type="submit">
-          Upload
-        </button>
-      </form>
-    </>
+    <div className="p-8">
+      <h1 className="text-2xl font-semibold mb-4">Welcome to the Catalog</h1>
+      <p>No categories found or please select a category from the sidebar.</p>
+    </div>
   );
 }
