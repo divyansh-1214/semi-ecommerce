@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { fetchCategories, fetchCategoryDetails } from "@/services/serverApi";
 import Link from "next/link";
 import { Category } from "@/types";
@@ -15,18 +14,22 @@ export default async function Home() {
   }
 
   if (categories.length > 0) {
-    const firstCat = categories[0];
-    try {
-      const catDetails = await fetchCategoryDetails(firstCat.id);
-      if (catDetails.subCategories && catDetails.subCategories.length > 0) {
-        redirect(`/category/${firstCat.id}/${catDetails.subCategories[0].id}`);
-      }
-    } catch {
-      // Fall through to empty state
-    }
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] p-8">
+        <div className="max-w-md w-full text-center">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#24408e]/10 flex items-center justify-center">
+            <Database className="text-[#24408e]" size={28} />
+          </div>
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">Welcome to SPN Semi</h1>
+          <p className="text-sm text-gray-500 mb-6">
+            Please select a category from the sidebar to view parts and specifications.
+          </p>
+        </div>
+      </div>
+    );
   }
 
-  // Empty state — no categories or failed to fetch details
+  // Empty state — no categories
   return (
     <div className="flex items-center justify-center min-h-[60vh] p-8">
       <div className="max-w-md w-full text-center">
