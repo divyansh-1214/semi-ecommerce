@@ -37,7 +37,7 @@ The core logic of the CSV import revolves around the `PartSpec` states:
 All endpoints are prefixed with `/api`.
 
 ### Import
-- `POST /api/import`: Accepts a `multipart/form-data` CSV file upload. Parses the file, extracts dynamic `SpecColumn` headers, and upserts data sequentially wrapped in a Prisma `$transaction`.
+- `POST /api/import`: Accepts a `multipart/form-data` CSV file upload. Parses the file, extracts dynamic `SpecColumn` headers, and upserts data. It processes rows sequentially without wrapping in a massive transaction, utilizing in-memory caches and chunked raw SQL bulk upserts for `PartSpec` to optimize database performance. It also handles empty row indicators and breaks on continuous blank rows.
 
 ### Categories
 - `GET /api/categories`: Lists all categories alongside their subcategory counts.
@@ -56,5 +56,4 @@ All endpoints are prefixed with `/api`.
 ### Spec Columns
 - `GET /api/spec-columns`: Retrieves the full dictionary of dynamic spec columns discovered during the CSV imports.
 
-## Scripts
-- `test-import.ts`: A validation script designed to verify that the core parsing logic correctly handles filled cells, dashed cells (`-`), and empty cells as per the requirements.
+
